@@ -8,6 +8,25 @@ class MoviesController < ApplicationController
 
   def index
     @movies = Movie.all
+    #all ratings
+    @all_ratings =Movie.all_ratings
+
+    #filter ratings to match given template of checkboxes
+    if !params[:sort_by].nil?
+       session[:sort_by] = params[:sort_by]
+    elsif !params[:ratings].nil?
+       session[:ratings] = params[:ratings]
+    end
+    @ratings_to_show = session[:ratings] ? session[:ratings].keys : @all_ratings
+    #redirect using session sorting if current params are empty
+    if params[:ratings].nil?
+       if !session[:ratings].nil?
+           flash.keep
+           redirect_to movies_path(sort_by: session[:sort_by], ratings: session[:ratings])
+       end
+    end
+    #display movies whose ratings match ratings_to_show
+    @movies = Movie.order(session[:sort_by]).where('rating IN (?)', @ratings_to_show)
   end
 
   def new
